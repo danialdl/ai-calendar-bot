@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Calendar Assistant</title>
+  <style>
+    body { font-family: sans-serif; background: #f2f2f2; margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh; }
+    #chat { width: 400px; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    #messages { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius:5px; }
+    .message { margin: 5px 0; }
+    .user { color: blue; }
+    .bot { color: green; }
+    #inputForm { display:flex; }
+    #inputForm input { flex:1; padding:5px; border-radius:5px; border:1px solid #ccc; }
+    #inputForm button { padding:5px 10px; margin-left:5px; border-radius:5px; border:none; background:#4CAF50; color:white; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div id="chat">
+    <div id="messages"></div>
+    <form id="inputForm">
+      <input type="text" id="userInput" placeholder="پیام خود را بنویسید..." autocomplete="off"/>
+      <button type="submit">ارسال</button>
+    </form>
+  </div>
+
+  <script>
+    const messagesDiv = document.getElementById('messages');
+    const inputForm = document.getElementById('inputForm');
+    const userInput = document.getElementById('userInput');
+
+    inputForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = userInput.value.trim();
+      if (!text) return;
+      
+      // نمایش پیام کاربر
+      const userMsg = document.createElement('div');
+      userMsg.className = 'message user';
+      userMsg.textContent = text;
+      messagesDiv.appendChild(userMsg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      
+      userInput.value = '';
+      
+      // ارسال پیام به n8n Webhook
+      try {
+        const res = await fetch('YOUR_N8N_WEBHOOK_URL', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await res.json();
+
+        const botMsg = document.createElement('div');
+        botMsg.className = 'message bot';
+        botMsg.textContent = data.reply || 'جوابی دریافت نشد';
+        messagesDiv.appendChild(botMsg);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      } catch (err) {
+        const botMsg = document.createElement('div');
+        botMsg.className = 'message bot';
+        botMsg.textContent = 'خطا در اتصال به سرور';
+        messagesDiv.appendChild(botMsg);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+    });
+  </script>
+</body>
+</html>
